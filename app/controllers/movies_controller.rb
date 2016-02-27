@@ -11,7 +11,12 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.ratings
+
+    #for generating the checkboxes
+    @all_ratings = Movie.ratingsArr
+
+    new_params = {}
+    redirect_needed = false
 
     #use session to remember selections
     if params[:sort_by]
@@ -24,18 +29,38 @@ class MoviesController < ApplicationController
 
     #default to all checked
     if (!session.has_key?('ratings'))
-      @selected = @all_ratings
-      @eligible_movies = Movie.all
+      @selected = Movie.ratingsHash
+      eligible_movies = Movie.all
+      session[:ratings] = @selected
     else
       @selected = session[:ratings]
-      @eligible_movies = Movie.where(:rating => @selected.keys)
+      eligible_movies = Movie.where(:rating => @selected.keys)
     end
 
     if session[:sort_by]
       @sort_by = session[:sort_by]
-      @movies = @eligible_movies.order(@sort_by + ' ASC')
+      @movies = eligible_movies.order(@sort_by + ' ASC')
     else
-      @movies = @eligible_movies
+      @movies = eligible_movies
+    end
+
+    #keep it restful. if sort_by or ratings is not in our params construct new ones and redirect
+    if !params[:sort_by] && session[:sort_by]
+      redirect_needed = true
+      new_params[:sort_by] = session[:sort_by]
+    else
+      new_params[:sort_by] = params[:sort_by]
+    end
+
+    if !params[:ratings]
+      redirect_needed = true
+      new_params[:ratings] = session[:ratings]
+    else
+      new_params[:ratings] = params[:ratings]
+    end
+
+    if redirect_needed
+      redirect_to movies_path(new_params)
     end
 
   end
