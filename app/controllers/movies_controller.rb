@@ -18,7 +18,7 @@ class MoviesController < ApplicationController
     new_params = {}
     redirect_needed = false
 
-    #use session to remember selections
+    #use session to remember selections. overwrite session with url args
     if params[:sort_by]
       session[:sort_by] = params[:sort_by]
     end
@@ -44,7 +44,7 @@ class MoviesController < ApplicationController
       @movies = eligible_movies
     end
 
-    #keep it restful. if sort_by or ratings is not in our params construct new ones and redirect
+    #keep it restful. if sort_by or ratings is not in our url args construct new ones and redirect
     if !params[:sort_by] && session[:sort_by]
       redirect_needed = true
       new_params[:sort_by] = session[:sort_by]
