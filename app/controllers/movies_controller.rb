@@ -11,11 +11,31 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params.has_key?(:sort_by)
-      @sort_by = params[:sort_by]
-      @movies = Movie.order(@sort_by + ' ASC')
+    @all_ratings = Movie.ratings
+
+    #use session to remember selections
+    if params[:sort_by]
+      session[:sort_by] = params[:sort_by]
+    end
+
+    if params[:ratings]
+      session[:ratings] = params[:ratings]
+    end
+
+    #default to all checked
+    if (!session.has_key?('ratings'))
+      @selected = @all_ratings
+      @eligible_movies = Movie.all
     else
-      @movies = Movie.all
+      @selected = session[:ratings]
+      @eligible_movies = Movie.where(:rating => @selected.keys)
+    end
+
+    if session[:sort_by]
+      @sort_by = session[:sort_by]
+      @movies = @eligible_movies.order(@sort_by + ' ASC')
+    else
+      @movies = @eligible_movies
     end
 
   end
